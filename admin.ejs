@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- ... (seus meta tags e links CSS) ... -->
+    <link rel="stylesheet" href="/css/admin.css"> <!-- Adicione o link para o CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="/images/logo.png" alt="Logo">
+            </div>
+            <ul>
+                <li>
+                    <a href="#" id="homeButton">
+                        <img src="/images/home_icon.png" alt="Home" class="menu-icon">
+                        Página Principal
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+
+            <div class="welcome-message">
+                <h2>Painel Administrador
+                </h2>
+            </div>
+
+
+            <div class="credit-message">
+
+                <!--<button id="profileButton" class="profile-button">
+                    <img src="/images/profile-icon.png" alt="Perfil" class="profile-icon" style="width: 35px">
+                </button>-->
+
+                <ul id="profileDropdown" class="profile-dropdown" style="display: none;">
+                    <li><a href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Trocar Senha</a></li>
+                    <li><a href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">Sobre</a></li>
+                    <li><button id="logoutButton" class="logout-button">Sair</button></li>
+                </ul>
+
+            </div>
+
+
+
+            <div class="admin-page">
+
+                <button id="novoUsuarioButton" class="btn btn-primary"> + Novo Usuário</button>
+
+                <table id="usuariosGrid" class="table table-striped" style="width: 100%">
+                    <thead>
+                        <tr>
+
+                            <th>Usuário</th>
+                            <th>Login</th>
+                            <th>Ações</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Os dados serão preenchidos aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal para alterar as permissões do usuário -->
+    <div class="modal fade" id="alterarPermissoesModal" tabindex="-1" aria-labelledby="alterarPermissoesModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alterarPermissoesModalLabel">Alterar Permissões</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h4 class="usuario-nome">Nome do Usuário: <span id="nomeUsuario"></span></h4>
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="sim" id="permissaoAdmin">
+                        <label class="form-check-label" for="permissaoAdmin">Administrador</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="sim" id="permissaoAberturaPortasVisita">
+                        <label class="form-check-label" for="permissaoAberturaPortasVisita">Abertura de Portões na
+                            Visita</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="sim" id="permissaoClienteRetira">
+                        <label class="form-check-label" for="permissaoClienteRetira">Opção Cliente Retira</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="sim" id="permissaoAutorizaVisitas">
+                        <label class="form-check-label" for="permissaoAutorizaVisitas">Autoriza Visitas</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="sim"
+                            id="permissaoAberturaPortasTelaInicial">
+                        <label class="form-check-label" for="permissaoAberturaPortasTelaInicial">Abertura de Portões na
+                            Tela Inicial</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarPermissoes"
+                        onclick="salvarPermissoes()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal para Adicionar Novo Usuário -->
+    <div class="modal fade" id="novoUsuarioModal" tabindex="-1" aria-labelledby="novoUsuarioModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="novoUsuarioModalLabel">Novo Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="novoUsuarioForm">
+                        <div class="form-group">
+                            <label for="novoLogin">Login:</label>
+                            <input type="text" class="form-control" id="novoLogin" name="novoLogin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="novoUsuario">Usuário:</label>
+                            <input type="text" class="form-control" id="novoUsuario" name="novoUsuario" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="novaSenha">Senha:</label>
+                            <input type="password" class="form-control" id="novaSenha" name="novaSenha" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmaSenha">Confirmar Senha:</label>
+                            <input type="password" class="form-control" id="confirmaSenha" name="confirmaSenha"
+                                required>
+                        </div>
+
+                    </form>
+
+
+                    <div class="form-group">
+                        <h3>Permissões:</h3>
+                        <table id="permissoesGrid" class="table table-striped" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Permissão</th>
+                                    <th>Ativo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Administrador</td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sim"
+                                                id="permissaoAdmin">
+                                            <label class="form-check-label" for="permissaoAdmin"></label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Abertura de Portões na Visita</td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sim"
+                                                id="permissaoAberturaPortasVisita">
+                                            <label class="form-check-label" for="permissaoAberturaPortasVisita"></label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Opção Cliente Retira</td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sim"
+                                                id="permissaoClienteRetira">
+                                            <label class="form-check-label" for="permissaoClienteRetira"></label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Autoriza Visitas</td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sim"
+                                                id="permissaoAutorizaVisitas">
+                                            <label class="form-check-label" for="permissaoAutorizaVisitas"></label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Abertura de Portões na Tela Inicial</td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sim"
+                                                id="permissaoAberturaPortasTelaInicial">
+                                            <label class="form-check-label"
+                                                for="permissaoAberturaPortasTelaInicial"></label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarNovoUsuario">Salvar</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- ... (seus modais) ... -->
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+
+
+        //*************************************************************//
+        //******************* INICIO DO DOOM **************************//
+        //*************************************************************//
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // ... (seu código para o painel do administrador) ...
+
+            let usuariosGrid;
+
+            // Inicialize o Modal 
+            const novoUsuarioModal = document.getElementById('novoUsuarioModal');
+            const novoUsuarioModalInstance = new bootstrap.Modal(novoUsuarioModal);
+
+            // Adicione evento de clique ao botão "Novo Usuário"
+            const novoUsuarioButton = document.getElementById('novoUsuarioButton');
+            if (novoUsuarioButton) {
+                novoUsuarioButton.addEventListener('click', () => {
+                    // Limpa os campos do modal antes de abrir
+                    limparCamposNovoUsuario();
+                    novoUsuarioModalInstance.show();
+                });
+            }
+
+            // Evento de clique no botão "Página Inicial"
+            const homeButton = document.getElementById('homeButton'); // Adicione um ID ao botão "Página Inicial"
+            if (homeButton) {
+                homeButton.addEventListener('click', () => {
+                    // Redireciona para a página /home
+                    window.location.href = '/home';
+                });
+            }
+
+
+            // Evento de clique no botão "Salvar" do modal "Novo Usuário"
+            const salvarNovoUsuarioButton = document.getElementById('salvarNovoUsuario');
+            if (salvarNovoUsuarioButton) {
+                salvarNovoUsuarioButton.addEventListener('click', () => {
+                    const novoLogin = document.getElementById('novoLogin').value;
+                    const novoUsuario = document.getElementById('novoUsuario').value;
+                    const novaSenha = document.getElementById('novaSenha').value;
+                    const confirmaSenha = document.getElementById('confirmaSenha').value;
+
+                    // 1. Valide as senhas
+                    if (novaSenha !== confirmaSenha) {
+                        alert('As senhas não coincidem!');
+                        return;
+                    }
+
+                    console.log(document.getElementById('permissaoAdmin'))
+
+                    // 2. Coleta as permissões
+                    const permissoes = {
+
+                        admin: document.getElementById('permissaoAdmin').checked ? 'S' : 'N',
+                        aberturaPortasVisita: document.getElementById('permissaoAberturaPortasVisita').checked ? 'S' : 'N',
+                        clienteRetira: document.getElementById('permissaoClienteRetira').checked ? 'S' : 'N',
+                        autorizaVisitas: document.getElementById('permissaoAutorizaVisitas').checked ? 'S' : 'N',
+                        aberturaPortasTelaInicial: document.getElementById('permissaoAberturaPortasTelaInicial').checked ? 'S' : 'N'
+                    };
+
+                    console.log(permissoes)
+
+                    // 3. Envie os dados para a API
+                    fetch('/api/novo-usuario', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            login: novoLogin,
+                            usuario: novoUsuario,
+                            senha: novaSenha,
+                            permissoes: permissoes
+                        })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Erro na requisição: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // 4. Feche o modal
+                            const novoUsuarioModal = document.getElementById('novoUsuarioModal');
+                            const novoUsuarioModalInstance = new bootstrap.Modal(novoUsuarioModal);
+                            novoUsuarioModalInstance.hide();
+
+                            // 5. Exiba uma mensagem de sucesso
+                            alert('Novo usuário cadastrado com sucesso!');
+
+                            // 6. Atualiza a tabela (se necessário)
+                            // ... (código para atualizar a grid de usuários) ...
+                        })
+                        .catch(error => {
+                            console.error('Erro ao cadastrar novo usuário:', error);
+                            alert('Erro ao cadastrar novo usuário. Tente novamente mais tarde.');
+                        });
+                });
+            }
+
+
+            function limparCamposNovoUsuario() {
+                document.getElementById('novoLogin').value = '';
+                document.getElementById('novoUsuario').value = '';
+                document.getElementById('novaSenha').value = '';
+                document.getElementById('confirmaSenha').value = '';
+
+                // Desmarque os checkboxes 
+                document.getElementById('permissaoAdmin').checked = false;
+                document.getElementById('permissaoAberturaPortasVisita').checked = false;
+                document.getElementById('permissaoClienteRetira').checked = false;
+                document.getElementById('permissaoAutorizaVisitas').checked = false;
+                document.getElementById('permissaoAberturaPortasTelaInicial').checked = false;
+            }
+
+
+            // Função para carregar os usuários
+            function carregarUsuarios() {
+                // Fazer a chamada à API
+                fetch('/api/usuarios', { // Endereço da sua API
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro HTTP! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Preencher a tabela com os dados retornados
+                        const tableBody = document.getElementById('usuariosGrid').querySelector('tbody');
+                        tableBody.innerHTML = ''; // Limpa o conteúdo anterior
+
+                        console.log(data); // Adicione este log para verificar o conteúdo de 'data'
+
+                        if (data.usuarios && data.usuarios.length > 0) {
+
+                            data.usuarios.forEach(usuarios => {
+                                var row = document.createElement('tr');
+                                row.setAttribute('id', `user-${usuarios.LOGIN}`); // Define ID único para cada linha
+                                row.classList.add('regular-user'); // Classe CSS para usuários regulares
+
+                                row.innerHTML = `
+                                            <td>${usuarios.USUARIO}</td>
+                                            <td>${usuarios.LOGIN}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-primary edit-icon" onclick="abrirModalAlterarPermissoes(\'${usuarios.LOGIN}\')">Alterar Permissões</button>
+                                                <button type="button" class="btn btn-danger delete-icon" data-login="${usuarios.LOGIN}">Excluir Usuário</button> 
+                                            </td>
+                                        `;
+
+                                tableBody.appendChild(row.cloneNode(true));
+                            });
+
+                            
+                            // Adiciona o evento de clique para os botões de "Alterar Permissões" (após a tabela ser carregada)
+                            document.querySelectorAll('.edit-icon').forEach(icon => {
+                                icon.addEventListener('click', function () {
+                                    const login = this.dataset.login;
+
+                                    // Chama a função para abrir o modal de alterar permissões
+                                    abrirModalAlterarPermissoes(login);
+                                });
+                            });
+
+                            // Adiciona o evento de clique para os botões de "Excluir Usuário"
+                            document.querySelectorAll('.delete-icon').forEach(icon => {
+                                icon.addEventListener('click', function () {
+                                    const login = this.dataset.login;
+
+                                    // Chama a função para excluir o usuário
+                                    excluirUsuario(login);
+                                });
+                            });
+
+                            // ... (seu código existente para os modais de alterar permissões) ...
+                        } else {
+                            // ... (seu código para exibir a mensagem 'Nenhum usuário encontrado') ...
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar os usuários:', error);
+                        // Mostrar uma mensagem de erro na tela
+                    });
+            }
+            // Carrega os usuários quando a página é carregada
+            carregarUsuarios();
+
+
+            
+            // Função para abrir o modal de alterar permissões
+            function abrirModalAlterarPermissoes(login) {
+                $('#alterarPermissoesModal').modal('show');
+                $('#loginUsuario').val(login);
+                $('#nomeUsuario').text(login); // Atualiza o nome do usuário no modal
+
+                // Busca as permissões do usuário da API
+                fetch(`/api/permissoes-usuario?login=${login}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro na requisição: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Preenche os checkboxes com as permissões
+                        document.getElementById('permissaoAdmin').checked = data.permissoes.PermissaoAdmin;
+                        document.getElementById('permissaoAberturaPortasVisita').checked = data.permissoes.PermissaoAberturaPortasVisita;
+                        document.getElementById('permissaoClienteRetira').checked = data.permissoes.PermissaoClienteRetira;
+                        document.getElementById('permissaoAutorizaVisitas').checked = data.permissoes.PermissaoAutorizaVisitas;
+                        document.getElementById('permissaoAberturaPortasTelaInicial').checked = data.permissoes.PermissaoAberturaPortasTelaInicial;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar permissões do usuário:', error);
+                        // Implementar uma ação para erros, como uma mensagem ao usuário
+                    });
+            }
+
+            // Função para salvar as permissões do usuário
+            function salvarPermissoes() {
+                const loginUsuario = $('#loginUsuario').val();
+
+                // Coleta as permissões dos checkboxes
+                const permissoes = {
+                    admin: document.getElementById('permissaoAdmin').checked ? 'S' : 'N',
+                    aberturaPortasVisita: document.getElementById('permissaoAberturaPortasVisita').checked ? 'S' : 'N',
+                    clienteRetira: document.getElementById('permissaoClienteRetira').checked ? 'S' : 'N',
+                    autorizaVisitas: document.getElementById('permissaoAutorizaVisitas').checked ? 'S' : 'N',
+                    aberturaPortasTelaInicial: document.getElementById('permissaoAberturaPortasTelaInicial').checked ? 'S' : 'N'
+                };
+
+                // Fazer a chamada à API para salvar as novas permissões
+                fetch('/api/alterar-permissoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                    },
+                    body: JSON.stringify({
+                        login: loginUsuario,
+                        permissoes: permissoes
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro na requisição: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Atualiza a tabela
+                        $('#usuariosGrid').DataTable().ajax.reload();
+
+                        // Fecha o modal
+                        $('#alterarPermissoesModal').modal('hide');
+                    })
+                    .catch(error => {
+                        console.error('Erro ao atualizar as permissões:', error);
+                        // Implementar uma ação para erros, como uma mensagem ao usuário
+                    });
+            }
+
+
+
+
+            function excluirUsuario(login) {
+                if (confirm("Tem certeza que deseja excluir este usuário?")) {
+                    fetch('/api/excluir-usuario', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Basic ' + btoa('admin:msmvk') // Autenticação básica
+                        },
+                        body: JSON.stringify({ login: login })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Erro na requisição: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                // Atualiza a DataTable
+                                //usuariosGrid.ajax.reload();
+                                alert('Usuário excluído com sucesso!');
+                            } else {
+                                alert('Falha ao excluir usuário.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            alert('Erro ao excluir usuário'); // Aqui seria acionado se a requisição falhar
+                        });
+                }
+
+                carregarUsuarios();
+            }
+
+
+
+
+
+
+
+
+            // Inicialize o Modal "Sobre"
+
+            const aboutModal = document.getElementById('aboutModal');
+            const aboutModalInstance = new bootstrap.Modal(aboutModal);
+
+            // Adicione evento de clique ao link "Sobre"
+            const aboutLink = document.querySelector('#profileDropdown li:nth-child(2) a');
+            aboutLink.addEventListener('click', () => {
+                aboutModalInstance.show();
+            });
+
+            // Adiciona evento de clique ao botão "Painel Administrador" 
+            const administratorpanelButton = document.getElementById('administratorpanel');
+            if (administratorpanelButton) {
+                administratorpanelButton.addEventListener('click', () => {
+                    // Redireciona para a página /admin
+                    window.location.href = '/admin';
+                });
+            }
+
+
+        });
+
+
+
+
+
+
+
+
+
+
+    </script>
+
+</body>
+
+</html>

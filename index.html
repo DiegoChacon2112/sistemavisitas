@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVK - Agendamento de Visitas</title>
+    <link rel="stylesheet" href="/css/styles.css"> <!-- Verifique se o caminho do CSS está correto -->
+</head>
+<body>
+    <div class="container">
+        <!-- Seção Esquerda: Formulário de Login -->
+        <div class="left-section">
+            
+            <div class="logo">
+                <img src="/images/logo-mvk.png" alt="Logo MVK">
+            </div>
+
+            <div class="login-header">
+                <h1>Agendamento de Visitas MVK</h1>
+            </div>
+
+        
+            <div class="login-form">
+
+                <form id="loginForm">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Entrar</button>
+                </form>
+            </div>
+        </div>
+        <!-- Seção Direita: Imagem Lateral -->
+        <div class="right-section">
+            <img src="images/path_to_your_image.jpg" alt="Imagem Lateral"> <!-- Substitua pelo caminho correto da sua imagem -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Previne o comportamento padrão de recarregar a página
+
+                const formData = new FormData(form);
+                const data = {
+                    username: formData.get('username'),
+                    password: formData.get('password')
+                };
+
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            window.location.href = '/home'; // Redireciona para a página inicial
+                        } else {
+                            alert("Usuário ou senha inválidos");
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        alert("Erro: " + errorText);
+                    }
+                } catch (error) {
+                    console.error("Erro ao tentar login:", error);
+                    alert("Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

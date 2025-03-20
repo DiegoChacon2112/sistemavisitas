@@ -1,0 +1,2661 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVK - Agendamento de Visitas</title>
+    <link rel="stylesheet" href="/css/home.css">
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet" />
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="/images/logo.png" alt="Logo">
+            </div>
+            <ul>
+                <li>
+                    <a href="#" id="openForm">
+                        <img src="/images/new_agendamento_icon.png" alt="Novo Agendamento" class="menu-icon"> Novo
+                        Agendamento
+                    </a>
+                </li>
+                <% if (acessologistica !=='N' ) { %>
+                    <li>
+                        <a href="#" id="clienteRetiraButton">
+                            <img src="/images/cliente_retira_icon.png" alt="Cliente Retira" class="menu-icon">
+                            Cliente Retira
+                        </a>
+                    </li>
+                    <% } %>
+
+                        <% if (autorizaVisitas !=='N' ) { %>
+                            <li>
+                                <a href="#authorize-visits">
+                                    <img src="/images/autorizar_visitas_icon.png" alt="Autorizar Visitas"
+                                        class="menu-icon">
+                                    Autorizar Visitas
+                                </a>
+                            </li>
+                            <% } %>
+                                <li>
+                                    <a href="#" id="myAppointmentsButton">
+                                        <img src="/images/meus_agendamentos_icon.png" alt="Meus Agendamentos"
+                                            class="menu-icon">
+                                        Meus Agendamentos
+                                    </a>
+                                </li>
+
+                                <% if (useradministrador !=='N' ) { %>
+                                    <li>
+                                        <a href="/admin">
+                                            <img src="/images/configuracao.png" alt="Painel Administrador"
+                                                class="menu-icon">
+                                            Painel Administrador
+                                        </a>
+                                    </li>
+                                    <% } %>
+            </ul>
+
+
+            <div class="user-profile">
+
+                <p>Desenvolvido por:</p>
+                <p>MVK - Gondolas e Displays</p>
+
+                <p>Versão do Aplicativo: 2024.03</p>
+            </div>
+        </div>
+
+
+        <div class="main-content">
+
+            <div class="welcome-message">
+                <h2>Olá, <%= userName %>
+                </h2>
+            </div>
+
+            <div class="credit-message">
+
+                <% if (visualizabotoes !=='N' ) { %>
+                    <button id="openGateSocial" class="gate-buttonp">
+                        <img src="/images/gate-social-icon.png" alt="Portão Social" class="gate-icon">
+                    </button>
+
+                    <button id="openTurnstile" class="gate-buttont">
+                        <img src="/images/turnstile-icon.png" alt="Torniquete" class="gate-icon">
+                    </button>
+
+                    <button id="openGateVehicle" class="gate-buttonv">
+                        <img src="/images/gate-vehicle-icon.png" alt="Portão Veículos" class="gate-icon">
+                    </button>
+                    <% } %>
+
+                        <button id="profileButton" class="profile-button">
+                            <img src="/images/profile-icon.png" alt="Perfil" class="profile-icon" style="width: 35px">
+                        </button>
+
+                        <ul id="profileDropdown" class="profile-dropdown" style="display: none;">
+                            <li><a href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Trocar
+                                    Senha</a></li>
+                            <li><a href="#">Sair</a></li>
+                        </ul>
+
+            </div>
+
+            <div id="calendar"></div>
+
+            <div class="calendar-footer">
+                <div class="legend-item">
+                    <span class="legend-color past-eventleg"></span>
+                    <span class="legend-text">Visitas Realizadas</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color normal-eventleg"></span>
+                    <span class="legend-text">Visitas Agendadas</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color coleta-eventleg"></span>
+                    <span class="legend-text">Coletas de Pedidos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal para adicionar agendamento -->
+    <div id="visitModal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>Novo Agendamento</h2>
+
+            <h3>Detalhes da Visita</h3>
+            <form id="visitForm">
+                <label for="visitDate">Data da Visita:</label>
+                <input type="date" id="visitDate" name="visitDate" required><br><br>
+
+                <label for="visitTime">Hora:</label>
+                <input type="time" id="visitTime" name="visitTime" required><br><br>
+
+                <label for="visitType">Tipo de Visita:</label>
+                <select id="visitType" name="visitType" required>
+                    <option value="1">Visita</option>
+                    <option value="2">Manutenção</option>
+                    <option value="3">Visita Cliente</option>
+                    <option value="4">Visita Fornecedor</option>
+                </select><br><br>
+
+                <label for="companyName">Empresa:</label>
+                <input type="text" id="companyName" name="companyName" required><br><br>
+
+                <label for="visitorName">Nome do Visitante:</label>
+                <input type="text" id="visitorName" name="visitorName" required><br><br>
+            </form>
+
+            <h3>Informações Adicionais</h3>
+            <form id="visitForm">
+                <label for="visitorCPF">CPF:</label>
+                <input type="text" id="visitorCPF" name="visitorCPF" required><br><br>
+
+                <label for="responsibleMVK">Responsável pela Visita:</label>
+                <input type="text" id="responsibleMVK" name="responsibleMVK" required><br><br>
+
+                <label for="visitReason">Motivo:</label>
+                <textarea id="visitReason" name="visitReason" rows="4" cols="50" required></textarea><br><br>
+
+                <label for="otherVisitors">Outros Visitantes:</label>
+                <textarea id="otherVisitors" name="otherVisitors" rows="4" cols="50"></textarea><br><br>
+
+                <label for="numPessoas">Quantidade de Visitantes:</label>
+                <input type="number" id="numPessoas" name="numPessoas" min="1" required><br><br>
+
+            </form>
+
+            <h3>Serviços Adicionais</h3>
+            <div class="checkbox-group">
+                <div>
+                    <input type="checkbox" id="brindes" name="brindes" checked>
+                    <label for="brindes">Brindes</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="coffeeBreak" name="coffeeBreak">
+                    <label for="coffeeBreak">Coffee Break</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="almoco" name="almoco">
+                    <label for="almoco">Almoço</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="catalogo" name="catalogo">
+                    <label for="catalogo">Catálogo</label>
+                </div>
+            </div>
+
+            <div id="loadingMessage" style="display: none;">
+                Aguarde...Enviando E-mail
+            </div>
+
+
+
+            <button type="button" id="submitForm">Salvar Agendamento</button>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- Modal para Agendamento de Cliente Retira -->
+    <div class="modal fade" id="clienteRetiraModal" tabindex="-1" aria-labelledby="clienteRetiraModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clienteRetiraModalLabel">Agendamento de Retirada por Cliente</h5>
+                    <span class="close-clienteRetiraModal">×</span>
+                </div>
+                <div class="modal-body">
+                    <form id="clienteRetiraForm">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h3>Informações Iniciais</h3>
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="retiradaDate">Data do Agendamento:</label>
+                                <input type="date" class="form-control" id="retiradaDate" name="retiradaDate" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="retiradaHora">Hora:</label>
+                                <input type="time" class="form-control" id="retiradaHora" name="retiradaHora" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="pedidoVenda">Pedido/Nota Fiscal:</label>
+                                <input type="text" class="form-control" id="pedidoVenda" name="pedidoVenda" required>
+                            </div>
+
+                            <div class="col-md-3 offset-md-9">
+                                <button type="button" class="btn btn-primary" id="buscarClienteButton">Buscar
+                                    Dados</button>
+                            </div>
+
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h3>Dados do Cliente</h3>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="cliente">Cliente:</label>
+                                <input type="text" class="form-control" id="cliente" name="cliente" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nomeCliente">Nome do Cliente:</label>
+                                <input type="text" class="form-control" id="nomeCliente" name="nomeCliente" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="cnpj">CNPJ/CPF:</label>
+                                <input type="text" class="form-control" id="cnpj" name="cnpj" readonly>
+                            </div>
+                            <br>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h3>Dados do Pedido/Nota fiscal</h3>
+                            </div>
+
+
+                            <div class="col-md-3">
+                                <label for="transportadora">Transportadora:</label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="transportadora" name="transportadora"
+                                        required aria-label="Transportadora" aria-describedby="button-addon2" required>
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-3">
+                                <label for="pedido">Pedido:</label>
+                                <input type="text" class="form-control" id="pedido" name="pedido" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="qtdVolumes">Qtd Volumes:</label>
+                                <input type="text" class="form-control" id="qtdVolumes" name="qtdVolumes" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="cubagem"> Peso/Cubagem estimados:</label>
+                                <input type="text" class="form-control" id="cubagem" name="cubagem" required>
+                            </div>
+                            <br>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h3>Dados para Agendamento</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="motorista">Motorista:</label>
+                                <input type="text" class="form-control" id="motorista" name="motorista" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="cpf">CPF:</label>
+                                <input type="text" class="form-control" id="cpf" name="cpf" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="rg">RG:</label>
+                                <input type="text" class="form-control" id="rg" name="rg" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="placa">PLACA:</label>
+                                <input type="text" class="form-control" id="placa" name="placa" required>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="salvarRetirada">Salvar Agendamento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Modal para Autorizar Visitas -->
+    <div id="authorizeVisitsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>Agendamentos pendentes de aprovação</h2>
+            <table id="authorizeVisitsTable" class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Solicitante</th>
+                        <th>Empresa</th>
+                        <th>Motivo</th>
+                        <th>Local</th>
+                        <th>Qtd Vis</th>
+                        <th style="display: flex; align-items: center;">
+                            Brindes
+                            <button id="helpButton" class="help-button">
+                                <img src="images/help.png" alt="Ajuda" style="width: 30px;">
+                            </button>
+                        </th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados serão preenchidos dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- Modal para Meus Agendamentos -->
+    <div id="myAppointmentsModal" class="modal" data-backdrop="static" data-keyboard="false">
+        <div class="modal-content appointments-modal">
+            <span class="close">&times;</span>
+            <h2>
+                <%= userName %> , esses são seus agendamentos
+            </h2>
+            <div class="table-container">
+                <table id="myAppointmentsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 3%;">Código</th>
+                            <th style="width: 5%;">Data</th>
+                            <th style="width: 5%;">Hora</th>
+                            <th style="width: 30%;">Empresa</th>
+                            <th style="width: 15%;">Status</th>
+                            <th style="width: 5%;">Ações</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Os dados serão preenchidos aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Model de Reagendamento -->
+    <div id="rescheduleVisitModal" class="modal reschedule-modal">
+        <div class="modal-content reschedule-modal-content">
+            <div class="modal-header">
+                <h2>Reagendar Visita</h2>
+                <span class="close-reschedule">×</span>
+            </div>
+            <form id="rescheduleForm">
+                <div class="form-group">
+                    <label for="newDate">Nova Data:</label>
+                    <input type="text" id="newDate" class="form-control date-picker">
+                </div>
+                <div class="form-group">
+                    <label for="newTime">Nova Hora:</label>
+                    <input type="time" id="newTime" class="form-control time-picker">
+                </div>
+                <div class="form-group">
+                    <label for="rescheduleReason">Motivo do Reagendamento:</label>
+                    <textarea id="rescheduleReason" class="form-control" rows="3"></textarea>
+                </div>
+                <button id="confirmReschedule" class="btn-confirm">Confirmar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para o Painel do Administrador -->
+    <div class="modal fade" id="adminPanelModal" tabindex="-1" aria-labelledby="adminPanelModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adminPanelModalLabel">Painel do Administrador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table id="usuariosGrid" class="table table-striped" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Login</th>
+                                <th>Usuário</th>
+                                <th>Permissões</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Os dados serão preenchidos aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para alterar as permissões do usuário -->
+    <div class="modal fade" id="alterarPermissoesModal" tabindex="-1" aria-labelledby="alterarPermissoesModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alterarPermissoesModalLabel">Alterar Permissões</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="alterarPermissoesForm">
+                        <div class="form-group">
+                            <label for="loginUsuario">Login:</label>
+                            <input type="text" class="form-control" id="loginUsuario" name="loginUsuario" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="permissoes">Permissões:</label>
+                            <select class="form-control" id="permissoes" name="permissoes" required>
+                                <option value="A">Administrador</option>
+                                <option value="U">Usuário</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarPermissoes"
+                        onclick="salvarPermissoes()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal para detalhes da visita -->
+    <div id="visitDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Detalhes da Visita</h2>
+
+            <div class="modal-section">
+                <p class="info-item"><strong>Status:</strong> <span id="modalStatus"></span></p>
+            </div>
+
+            <% if (aberturasPortoes==='S' ) { %>
+                <div class="separator"></div>
+                <div class="gate-buttons modern-buttons">
+                    <button id="openGateSoc" class="gate-button">
+                        <img src="/images/gate-social-icon.png" alt="Portão Social" class="gate-icon">
+                        <span>Portão Social</span>
+                    </button>
+
+                    <button id="openTurnsti" class="gate-button">
+                        <img src="/images/turnstile-icon.png" alt="Torniquete" class="gate-icon">
+                        <span>Torniquete</span>
+                    </button>
+
+                    <button id="openGateVehic" class="gate-button">
+                        <img src="/images/gate-vehicle-icon.png" alt="Portão Veículos" class="gate-icon">
+                        <span>Portão Veículos</span>
+                    </button>
+                </div>
+                <% } %>
+
+                    <div class="separator"></div>
+
+                    <div class="modal-details">
+                        <div class="modal-details-row">
+
+                            <div class="info-item">
+                                <p class="info-item"><strong>Data da Visita:</strong> <span id="modalDataVisita"></span>
+                                </p>
+                            </div>
+
+                            <div class="info-item">
+                                <p class="info-item"><strong>Hora:</strong> <span id="modalHora"></span></p>
+                            </div>
+
+                        </div>
+                        <p class="info-item"><strong>Empresa:</strong> <span id="modalEmpresa"></span></p>
+                        <p class="info-item"><strong>Visitante:</strong> <span id="modalVisitante"></span></p>
+                        <p class="info-item"><strong>Documento:</strong> <span id="modalDocumento"></span></p>
+                        <p class="info-item"><strong>Responsável:</strong> <span id="modalResponsavel"></span></p>
+                        <p class="info-item"><strong>Tipo de Visita:</strong> <span id="modalTipoVisita"></span></p>
+                        <p class="info-item"><strong>Local:</strong> <span id="modalLocal"></span></p>
+                        <p class="info-item"><strong>Motivo:</strong> <span id="modalMotivo"></span></p>
+                    </div>
+
+                    <div class="checkbox-separator"></div>
+
+                    <div class="modal-details">
+                        <p class="info-item"><strong>Brinde:</strong> <span id="modalBrinde"></span></p>
+
+                        <p id="quantidadeOuro" class="hidden-info"><strong>Quantidade de Brindes Ouro:</strong>
+                            <span></span>
+                        </p>
+                        <p id="quantidadePrata" class="hidden-info"><strong>Quantidade de Brindes Prata:</strong>
+                            <span></span>
+                        </p>
+                        <p id="quantidadeBronze" class="hidden-info"><strong>Quantidade de Brindes Bronze:</strong>
+                            <span></span>
+                        </p>
+
+                        <p class="info-item"><strong>Coffebreak:</strong> <span id="modalCoffebreak"></span></p>
+                        <p class="info-item"><strong>Almoço:</strong> <span id="modalAlmoco"></span></p>
+                        <p class="info-item"><strong>Catálogo:</strong> <span id="modalCatalogo"></span></p>
+                    </div>
+        </div>
+    </div>
+
+
+    <!-- Modal para motivo de rejeição -->
+    <div id="rejectReasonModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Motivo da Rejeição</h2>
+            <textarea id="rejectReason" rows="4" cols="50"></textarea>
+            <button type="button" id="confirmRejection">Confirmar Rejeição</button>
+        </div>
+    </div>
+
+    <div class="alert-container" id="alertContainer">
+        <span class="alert-close">×</span>
+        <div class="alert-message"></div>
+    </div>
+
+
+
+    <!-- Modal para Help dos Brindes -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="helpModalLabel">
+                        <img src="/images/duvida.png" style="width: 40px" alt="Torniquete" class="gate-icon"> Duvidas
+                        sobre os Brindes ? Vamos te ajudar
+                    </h5>
+                    <!-- Botão de fechar funcional -->
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Brinde Ouro:</p><br>
+
+                    <p>1 Castanha Macadâmia Salgada </p>
+                    <p>1 Castanha Macadâmia Chocolate</p>
+                    <p>1 Caneca em inox para café</p>
+                    <p>1 Guardanapo Personalizado </p>
+                    <p>1 Pão Caseiro</p>
+                    <p>1 Café Imperial 500 g </p>
+                    <p>1 Suporte Celular MVK</p>
+                    <p>1 Sacola a definir</p>
+
+                    <br>
+
+                    <p>Brinde Prata:</p><br>
+
+                    <p>1 Copo tipo Stanley</p>
+                    <p>1 Suporte Celular MVK</p>
+                    <p>1 Sacola a definir</p>
+
+                    <br>
+
+                    <p>Brinde Bronze:</p><br>
+
+                    <p>1 Chocolate</p>
+                    <p>1 Suporte Celular MVK</p>
+                    <p>1 Sacola personalizada</p>
+
+                    <br>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SOBRE -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aboutModalLabel">Sobre o Aplicativo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Versão do Aplicativo: 2024.02</p>
+                    <p>Desenvolvido por: MVK - Gondolas e Displays</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIM MODAL SOBRE-->
+
+
+
+    <!-- Modal para Troca de Senha -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">Troca de Senha</h5>
+
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Senha Atual:</label>
+                            <input type="password" class="form-control" id="currentPassword"
+                                placeholder="Digite sua senha atual" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Nova Senha:</label>
+                            <input type="password" class="form-control" id="newPassword"
+                                placeholder="Digite sua nova senha" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmNewPassword">Confirmar Nova Senha:</label>
+                            <input type="password" class="form-control" id="confirmNewPassword"
+                                placeholder="Confirme sua nova senha" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmChangePassword">Confirmar</button>
+                </div>
+            </div>
+        </div>
+        <div id="changePasswordError" class="text-danger" style="display: none;"></div>
+        </form>
+    </div>
+
+
+    <div id="loadingIcon" class="loading" style="display: none;">
+        <img src="/images/carregando.gif" alt="Aguarde, enviando e-mail...">
+        Aguarde, enviando e-mail...
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div id="successModal" class="modal-success" style="display: none;">
+        <div class="modal-content-success">
+            <span id="closeSuccessModal" class="close-success">&times;</span>
+            <img src="images/sucesso.png" alt="Sucesso" style="width: 50px; height: 50px;">
+            <p>E-mail enviado com sucesso!</p>
+        </div>
+    </div>
+
+    <!-- Modal para Câmera -->
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraModalLabel">Câmera de Segurança</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="cameraFeed">
+                    <img id="cameraImage" src="" alt="Câmera de Segurança">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ################################################### 
+    FIM DA CRIAÇÃO DOS MODALS
+    #################################################### -->
+
+
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales-all.min.js"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+    <script>
+        const alertContainer = document.getElementById('alertContainer');
+        const alertMessage = alertContainer.querySelector('.alert-message');
+        const alertClose = alertContainer.querySelector('.alert-close');
+
+
+        // Função para mostrar o alerta
+        function showAlert(message) {
+            alertMessage.textContent = message;
+            const emoji = document.createElement('span');
+            emoji.textContent = '😭';
+            alertMessage.appendChild(emoji);
+            alertContainer.style.display = 'block';
+        }
+
+        // Função para fechar o alerta
+        function closeAlert() {
+            alertContainer.style.display = 'none';
+        }
+
+        // Evento de clique para fechar o alerta
+        alertClose.addEventListener('click', closeAlert);
+
+        function showBrindeQuantities(brindeType, quantidade) {
+            const quantidadeElement = document.getElementById(`quantidade${brindeType}`);
+            if (quantidadeElement) {
+                quantidadeElement.style.display = 'block';
+                quantidadeElement.querySelector('span').textContent = quantidade;
+            }
+        }
+
+        function enviarEmail() {
+            // Exibe o ícone de carregamento
+            document.getElementById('loadingIcon').style.display = 'block';
+
+            // Simulação de envio de e-mail (substitua isso pelo seu código de envio)
+            setTimeout(function () {
+                // Aqui você pode adicionar o código que realiza o envio de e-mail
+
+                // Após o envio (ou resposta do servidor), ocultar o ícone
+                document.getElementById('loadingIcon').style.display = 'none';
+
+                // Alerta de sucesso (você pode modificar isso)
+                alert("E-mail enviado com sucesso!");
+            }, 3000); // Simulação de um atraso de 3 segundos
+        }
+
+    </script>
+
+    <script>
+
+
+
+        /*
+        // Quando o modal for aberto
+        const visitDetailModal = document.getElementById('visitDetailModal');
+        const visitDetailModalInstance = new bootstrap.Modal(visitDetailModal);
+
+        visitDetailModal.addEventListener('shown.bs.modal', function () {
+            if (modalBrinde.textContent === 'Sim') {
+                // Obtém a quantidade de cada brinde da API
+                // Exemplo: assumindo que a API retorna os valores em `data.quantidadeOuro`, `data.quantidadePrata`, `data.quantidadeBronze`
+                showBrindeQuantities('Ouro'  , data.quantidadeOuro);
+                showBrindeQuantities('Prata' , data.quantidadePrata);
+                showBrindeQuantities('Bronze', data.quantidadeBronze);
+            }
+        });
+*/
+
+
+
+
+        var USERLOGIN = '<%= userLogin %>';
+        var USERNAME = '<%= userName %>';
+
+        // Função para formatar a data
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        let helpModalInstance;
+
+        ///***************************************
+        //INICIIO DO DOM
+        //****************************************
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+
+            const helpModal = document.getElementById('helpModal');
+            helpModalInstance = new bootstrap.Modal(helpModal); // Inicialize a variável
+
+            const helpButton = document.getElementById('helpButton');
+            helpButton.addEventListener('click', () => {
+                helpModalInstance.show();
+            });
+
+            // Adiciona evento de clique no botão "Painel Administrador" (após o DOM estar pronto)
+            document.addEventListener('DOMContentLoaded', function () {
+                const administratorpanelButton = document.getElementById('administratorpanel');
+                if (administratorpanelButton) {
+                    administratorpanelButton.addEventListener('click', () => {
+                        // Redireciona para a página /admin
+                        window.location.href = '/admin';
+                    });
+                }
+            });
+
+
+            console.log('DOM totalmente carregado e analisado.');
+
+            // Inicializar o Flatpickr no campo de data
+            flatpickr("#visitDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: true,
+                disable: [function (date) {
+                    return date < new Date(new Date().setDate(new Date().getDate() - 1)); // Desabilita  datas   anteriores ao  dia  anterior 
+                }],
+                locale: {
+                    firstDayOfWeek: 1, // Começa na segunda-feira
+                    weekdays: {
+                        shorthand: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'],
+                        longhand: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
+                    },
+                    months: {
+                        shorthand: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                        longhand: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+                    }
+                }
+            });
+
+            // Inicializar o Flatpickr no campo de data
+            flatpickr("#newDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: true,
+                disable: [function (date) {
+                    return date < new Date(new Date().setDate(new Date().getDate() - 1)); // Desabilita  datas   anteriores ao  dia  anterior 
+                }],
+                locale: {
+                    firstDayOfWeek: 1, // Começa na segunda-feira
+                    weekdays: {
+                        shorthand: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'],
+                        longhand: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
+                    },
+                    months: {
+                        shorthand: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                        longhand: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+                    }
+                }
+            });
+
+            flatpickr("#retiradaDate", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: true,
+                disable: [function (date) {
+                    return date < new Date(new Date().setDate(new Date().getDate() - 1)); // Desabilita  datas   anteriores ao  dia  anterior 
+                }],
+                locale: {
+                    firstDayOfWeek: 1, // Começa na segunda-feira
+                    weekdays: {
+                        shorthand: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'],
+                        longhand: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
+                    },
+                    months: {
+                        shorthand: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                        longhand: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+                    }
+                }
+            });
+
+
+
+
+
+
+            //###############################################################    
+            //***************************************************************
+            //Função de carregamento de Claendário
+            //###############################################################    
+            //***************************************************************
+
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                locale: 'pt-br',
+                expandRows: true,
+                height: '100%',
+                contentHeight: 'auto',
+                handleWindowResize: true,
+                showNonCurrentDates: false,
+                events: function (fetchInfo, successCallback, failureCallback) {
+                    const currentMonth = fetchInfo.start.getFullYear() + ('0' + (fetchInfo.start.getMonth() + 1)).slice(-2);
+                    const apiUrl = 'http://192.168.0.251:8401/rest/VKLISVIS';
+                    const username = 'admin';
+                    const password = 'msmvk';
+                    const credentials = btoa(`${username}:${password}`);
+
+                    fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${credentials}`
+                        },
+                        body: JSON.stringify({ month: currentMonth }) // Envia o mês atual para a API
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.Agendas) {
+                                const events = data.Agendas.map(item => {
+
+                                    const year = parseInt(item.Data.substring(0, 4), 10);
+                                    const month = parseInt(item.Data.substring(4, 6), 10) - 1; // Mês começa em 0
+                                    const day = parseInt(item.Data.substring(6, 8), 10);
+
+                                    const eventDate = new Date(year, month, day);
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0); // Para comparação correta, zerar a hora do dia
+
+                                    const isPast = eventDate < today;
+
+                                    const isClienteRetira = item.TipoVisita === "CR"; // Verifica se o tipo é "CR"
+                                    //console.log(item.TipoVisita);
+                                    //console.log(isClienteRetira);
+
+                                    return {
+                                        title: item.Visita,
+                                        start: item.Data,
+                                        allDay: true,
+                                        className: isPast ? 'past-event' : (isClienteRetira ? 'cliente-retira' : '')
+                                    };
+                                });
+
+                                //console.log('Eventos processados:', events);
+                                successCallback(events); // Passa os eventos processados para o calendário
+                            } else {
+                                console.error('Erro: Nenhum dado de agenda encontrado na resposta da API.');
+                                failureCallback('Nenhum dado de agenda encontrado.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao comunicar com a API:', error);
+                            failureCallback('Erro ao comunicar com a API.');
+                        });
+                },
+
+
+
+
+                eventClick: function (info) {
+                    var codigoVisita = info.event.title.substring(0, 6);
+                    fetch('http://192.168.0.251:8401/rest/VKDETVIS', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${btoa('admin:msmvk')}`
+                        },
+                        body: JSON.stringify({ codigoVisita: codigoVisita })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+
+
+                        .then(data => {
+
+                            console.log(data)
+
+                            // Preenche os detalhes da visita no modal
+                            document.getElementById('modalStatus').textContent = data.Status;
+                            document.getElementById('modalDataVisita').textContent = data.DataVisista;
+                            document.getElementById('modalHora').textContent = data.Hora;
+                            document.getElementById('modalEmpresa').textContent = data.Empresa;
+                            document.getElementById('modalVisitante').textContent = data.Visitante;
+                            document.getElementById('modalDocumento').textContent = data.Documento;
+                            document.getElementById('modalResponsavel').textContent = data.Responsavel;
+                            document.getElementById('modalTipoVisita').textContent = data.TipoVisita;
+                            document.getElementById('modalLocal').textContent = data.Local;
+                            document.getElementById('modalMotivo').textContent = data.Motivo;
+                            document.getElementById('modalBrinde').textContent = data.Brinde;
+
+                            console.log(data.Brinde)
+
+                            // Exibe a quantidade de brindes, se houver
+                            if (document.getElementById('modalBrinde').textContent === 'Sim') {
+                                document.getElementById('quantidadeOuro').style.display = 'block';
+                                document.getElementById('quantidadeOuro').querySelector('span').textContent = data.Qtdouro;
+                                document.getElementById('quantidadePrata').style.display = 'block';
+                                document.getElementById('quantidadePrata').querySelector('span').textContent = data.Qtdprata;
+                                document.getElementById('quantidadeBronze').style.display = 'block';
+                                document.getElementById('quantidadeBronze').querySelector('span').textContent = data.Qtdbronze;
+                            } else {
+                                document.getElementById('quantidadeOuro').style.display = 'block';
+                                document.getElementById('quantidadeOuro').querySelector('span').textContent = 0;
+                                document.getElementById('quantidadePrata').style.display = 'block';
+                                document.getElementById('quantidadePrata').querySelector('span').textContent = 0;
+                                document.getElementById('quantidadeBronze').style.display = 'block';
+                                document.getElementById('quantidadeBronze').querySelector('span').textContent = 0;
+                            }
+
+                            document.getElementById('modalCoffebreak').textContent = data.Coffebreak;
+                            document.getElementById('modalAlmoco').textContent = data.Almoco;
+                            document.getElementById('modalCatalogo').textContent = data.Catalogo;
+
+
+                            // Mostra o modal
+                            var modal = document.getElementById('visitDetailModal');
+                            modal.style.display = 'block';
+                        })
+                        .catch(error => {
+                            console.error('Erro ao obter detalhes da visita:', error);
+                            alert('Erro ao obter detalhes da visita.');
+                        });
+                }
+
+
+
+
+            });
+
+            calendar.render();
+
+
+
+
+
+            //###############################################################    
+            //***************************************************************
+            //Função de Alteração de Senha
+            //###############################################################    
+            //***************************************************************
+
+            async function buscarSenha(email) {
+                const apiUrl = 'http://192.168.0.251:8401/rest/VKAGESATU';
+                const username = 'admin';
+                const password = 'msmvk';
+                const credentials = btoa(`${username}:${password}`);
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${credentials}`
+                        },
+                        body: JSON.stringify({ login: email }) // Envia o email do usuário
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erro na API: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        return data.Senhaatu; // Retorna a senha atual
+                    } else {
+                        throw new Error("Erro ao buscar senha.");
+                    }
+
+                } catch (error) {
+                    console.error('Erro ao buscar senha:', error);
+                    throw new Error("Erro ao buscar senha.");
+                }
+            }
+
+
+            // Inicialize o Modal
+            const changePasswordModal = document.getElementById('changePasswordModal');
+            const changePasswordModalInstance = new bootstrap.Modal(changePasswordModal);
+
+            // Adicione evento de clique ao link "Trocar Senha"
+            const trocarSenhaLink = document.querySelector('#profileDropdown li:nth-child(1) a');
+            trocarSenhaLink.addEventListener('click', () => {
+                changePasswordModalInstance.show();
+
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+            });
+
+            // Evento de clique no botão "Confirmar"
+            const confirmChangePasswordButton = document.getElementById('confirmChangePassword');
+            if (confirmChangePasswordButton) {
+                confirmChangePasswordButton.addEventListener('click', async () => {
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+                    // 1. Valide as senhas
+                    if (newPassword !== confirmNewPassword) {
+                        // Exiba uma mensagem de erro para o usuário
+                        alert("A nova senha e sua confirmação não coincidem!");
+                        return;
+                    }
+
+                    // 2. Buscar a senha atual usando a API
+                    const senhaAtual = await buscarSenha(USERLOGIN);
+
+                    if (currentPassword !== senhaAtual) {
+                        // Exiba uma mensagem de erro para o usuário
+                        alert("Senha atual incorreta!");
+                        return;
+                    }
+
+                    // 3. Envie as senhas para a API de atualização
+
+
+
+                    fetch('/trocar-senha', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: USERLOGIN,
+                            newPassword: newPassword,
+                        })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                alert("Erro ao atualizar a senha. Tente novamente mais tarde.");
+                                return;
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // 4. Feche o modal de troca de senha (opcional)
+                            changePasswordModalInstance.hide();
+
+                            // 5. Exiba uma mensagem de sucesso para o usuário
+                            alert('Senha atualizada com sucesso!');
+                        })
+                        .catch(error => {
+                            console.error('Erro ao trocar senha:', error);
+                            // Exiba uma mensagem de erro para o usuário
+                            alert('Erro ao trocar senha. Tente novamente mais tarde.');
+                        });
+                });
+
+                // Quando o botão de perfil for clicado
+                document.getElementById('profileButton').addEventListener('click', () => {
+                    const profileDropdown = document.getElementById('profileDropdown');
+                    if (profileDropdown.style.display === 'none') {
+                        profileDropdown.style.display = 'block';
+                    } else {
+                        profileDropdown.style.display = 'none';
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    const profileButton = document.getElementById('profileButton');
+                    const profileDropdown = document.getElementById('profileDropdown');
+
+                    if (!profileButton.contains(event.target) && !profileDropdown.contains(event.target)) {
+                        profileDropdown.style.display = 'none'; // Esconde o menu
+                    }
+                });
+
+
+
+
+
+
+                // Inicialize o Modal
+                const aboutModal = document.getElementById('aboutModal');
+                const aboutModalInstance = new bootstrap.Modal(aboutModal);
+
+
+                // Evento de clique no botão "Sair"
+                const logoutButton = document.querySelector('#profileDropdown li:nth-child(2) a');
+                if (logoutButton) {
+                    logoutButton.addEventListener('click', () => {
+                        console.log('Botão de logout clicado'); // Para depuração
+                        window.location.href = '/logout';  // Redireciona para a página de logout
+                    });
+                } else {
+                    console.error('Botão de logout não encontrado');
+                }
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //###############################################################    
+            //***************************************************************
+            // Função para abrir o modal de "Meus Agendamentos"
+            //###############################################################    
+            //***************************************************************
+
+            // Capturar o botão de "Meus Agendamentos"
+            var myAppointmentsButton = document.getElementById('myAppointmentsButton');
+
+            // Verificar se o botão foi corretamente capturado
+            if (!myAppointmentsButton) {
+                console.error('Botão "Meus Agendamentos" não encontrado no DOM!');
+                return;
+            }
+
+            var myAppointmentsModal = document.getElementById('myAppointmentsModal');
+            var closeMyAppointmentsModal = myAppointmentsModal.querySelector('.close');
+
+            // Evento de clique para abrir o modal de "Meus Agendamentos"
+            myAppointmentsButton.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                // Fazer a chamada à API
+                fetch('http://192.168.0.251:8401/rest/VKMINHAVIS', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                    },
+                    body: JSON.stringify({ login: USERLOGIN })  // Substituindo pelo login correto do usuário
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro HTTP! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+
+                        var tableBody = document.getElementById('myAppointmentsTable').querySelector('tbody');
+                        tableBody.innerHTML = ''; // Limpa o conteúdo anterior
+
+                        if (data.Visitas && data.Visitas.length > 0) {
+                            // Preenche a tabela com os dados retornados
+                            data.Visitas.forEach(visita => {
+                                var row = document.createElement('tr');
+                                row.setAttribute('data-status', visita.Status);
+
+                                if (visita.Status === 'Visita Aprovada') {
+                                    row.classList.add('approved');
+                                } else if (visita.Status === 'Visita Reprovada') {
+                                    row.classList.add('rejected');
+                                } else if (visita.Status === 'Aguardando Aprovacao') {
+                                    row.classList.add('pending');
+                                }
+
+                                row.setAttribute('id', `visit-${visita.Codigo}`);
+
+                                row.innerHTML = `
+                                   <td>${visita.Codigo}</td>
+                                    <td>${visita.Data}</td>
+                                    <td>${visita.Hora}</td>
+                                    <td>${visita.Empresa}</td>
+                                    <td>${visita.Status}</td>
+                                    <td>
+                                        <img src="/images/delete-icon.png" alt="Excluir" class="action-icon delete-icon" data-codigo="${visita.Codigo}">
+                                        <img src="/images/reschedule-icon.png" alt="Reagendar" class="action-icon reschedule-icon" data-codigo="${visita.Codigo}">
+                                    </td>
+
+                                `;
+
+                                tableBody.appendChild(row.cloneNode(true));
+                            });
+
+                            // Adiciona o evento de clique para o ícone de "Excluir"
+                            document.querySelectorAll('.delete-icon').forEach(icon => {
+                                icon.addEventListener('click', function () {
+                                    const codigoVisita = this.dataset.codigo;
+
+                                    // Verificação: Exibe o código da visita no console para garantir que está correto
+                                    if (codigoVisita) {
+                                        console.log('Código da visita capturado:', codigoVisita);
+                                        confirmarExclusaoVisita(codigoVisita);  // Chama a função de confirmação de exclusão
+                                    } else {
+                                        console.error('Código da visita não encontrado para este ícone de exclusão.');
+                                    }
+                                });
+                            });
+
+                            //******************************************************
+                            // Função para excluir a visita consumindo a API
+                            //******************************************************
+
+                            // Função para exibir a confirmação de exclusão
+                            function confirmarExclusaoVisita(codigoVisita) {
+                                // Pergunta de confirmação antes de excluir
+                                if (confirm("Deseja confirmar o cancelamento dessa visita?")) {
+                                    // Faz a requisição à API externa após a confirmação
+                                    fetch('http://192.168.0.251:8401/rest/VKDELVIS', {
+                                        method: 'POST',  // Certifique-se de que o método está correto
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': 'Basic ' + btoa('admin:msmvk')  // Autenticação básica
+                                        },
+                                        body: JSON.stringify({
+                                            Codigo: codigoVisita  // Envia o código da visita no corpo da requisição
+                                        })
+                                    })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            // Verifica se a exclusão foi bem-sucedida
+                                            if (data.success) {
+                                                alert('Visita cancelada com sucesso!');
+
+                                                // Remove a linha da tabela após o cancelamento
+                                                const row = document.getElementById(`visit-${codigoVisita}`);
+                                                if (row) {
+                                                    row.remove();  // Remove a linha da tabela
+                                                } else {
+                                                }
+
+                                                // Opcional: Realizar qualquer outra ação pós-cancelamento, como enviar um e-mail
+                                                // Enviar e-mail de exclusão
+
+                                                // Exibe o ícone de carregamento
+                                                document.getElementById('loadingIcon').style.display = 'block';
+
+                                                fetch('/enviar-email-exclusao', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify({
+                                                        codigo: data.Codigo,
+                                                        visitDate: data.Data,
+                                                        visitTime: data.Hora,
+                                                        companyName: data.Empresa,
+                                                        email: data.Email,
+                                                        brinde: data.Brinde,
+                                                        coffebreak: data.Coffebreak,
+                                                        almoco: data.Almoco,
+                                                        catalogo: data.Catalogo,
+                                                        solicitante: data.Solicitante
+                                                    })
+                                                })
+                                                    .then(emailResponse => {
+                                                        if (!emailResponse.ok) {
+                                                            throw new Error('Erro ao enviar o e-mail de exclusão.');
+                                                        }
+                                                        return emailResponse.json();
+                                                    })
+                                                    .then(emailResult => {
+
+                                                        // Ocultar a imagem de carregamento após o sucesso
+                                                        document.getElementById('loadingIcon').style.display = 'none';
+
+                                                        if (emailResult.success) {
+
+                                                            // Exibir o modal de sucesso
+                                                            document.getElementById('successModal').style.display = 'flex';
+
+                                                        } else {
+                                                            alert('Erro ao enviar o e-mail de exclusão.');
+                                                        }
+                                                    })
+                                                    .catch(error => {
+
+                                                        // Ocultar a imagem de carregamento após o sucesso
+                                                        document.getElementById('loadingIcon').style.display = 'none';
+
+                                                        console.error('Erro ao enviar o e-mail:', error);
+                                                        alert('Erro ao enviar o e-mail.');
+                                                    });
+
+                                                // Função para fechar o modal de sucesso
+                                                document.getElementById('closeSuccessModal').onclick = function () {
+                                                    document.getElementById('successModal').style.display = 'none';
+                                                }
+
+                                            } else {
+                                                alert('Erro ao cancelar a visita: ' + data.message);
+                                            }
+                                        })
+
+                                        .catch(error => {
+                                            console.error('Erro ao comunicar com a API:', error);
+                                            alert('Erro ao comunicar com a API.');
+                                        });
+                                }
+                            }
+
+                            // Adiciona o evento de click ao ícone de reagendamento
+                            document.querySelectorAll('.reschedule-icon').forEach(icon => {
+                                icon.addEventListener('click', function () {
+                                    const codigoVisita = this.dataset.codigo;
+                                    abrirModalReagendamento(codigoVisita);
+                                });
+                            });
+
+                            function abrirModalReagendamento(codigoVisita) {
+                                const modal = document.getElementById('rescheduleVisitModal');
+                                if (!modal) {
+                                    console.error("Modal não encontrado!");
+                                    return;
+                                }
+
+                                // Limpa os campos do modal
+                                document.getElementById('newDate').value = '';
+                                document.getElementById('newTime').value = '';
+                                document.getElementById('rescheduleReason').value = '';
+
+                                modal.style.display = 'block';
+
+                                const rescheduleModal = document.getElementById('rescheduleVisitModal');
+                                const closeRescheduleButton = document.querySelector('.close-reschedule');
+
+                                // Função para fechar o modal
+                                function closeRescheduleModal() {
+                                    rescheduleModal.style.display = 'none';
+                                }
+                                
+                                // Adiciona o evento de clique ao botão de fechar
+                                closeRescheduleButton.addEventListener('click', closeRescheduleModal);
+                                // Fecha o modal ao clicar fora dele
+                                window.onclick = function (event) {
+                                    if (event.target === modal) {
+                                        fecharModal();
+                                    }
+                                };
+
+                                // Captura o botão de "Confirmar" e realiza o reagendamento
+                                document.getElementById('confirmReschedule').onclick = function () {
+                                    const newDateInput = document.getElementById('newDate');
+                                    const newTimeInput = document.getElementById('newTime');
+                                    const motivoInput = document.getElementById('rescheduleReason');
+
+                                    if (!newDateInput || !newTimeInput || !motivoInput) {
+                                        console.error('Campos do modal não encontrados!');
+                                        return;
+                                    }
+
+                                    const newDate = newDateInput.value;
+                                    const newTime = newTimeInput.value;
+                                    const motivo = motivoInput.value;
+
+                                    if (!newDate || !newTime || !motivo) {
+                                        alert('Por favor, preencha todos os campos.');
+                                        return;
+                                    }
+
+                                    // Chama a API para reagendar a visita
+                                    reagendarVisita(codigoVisita, newDate, newTime, motivo);
+                                    fecharModal();
+
+                                };
+                            }
+
+
+                            // Função para reagendar a visita via API
+                            function reagendarVisita(codigoVisita, newDate, newTime, motivo) {
+                                fetch('http://192.168.0.251:8401/rest/VKREAGVIS', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                                    },
+                                    body: JSON.stringify({
+                                        codigoVisita: codigoVisita,
+                                        novaData: newDate,
+                                        novaHora: newTime,
+                                        motivo: motivo
+                                    })
+                                })
+
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            throw new Error(`Erro HTTP! Status: ${response.status}`);
+                                        }
+                                        return response.json();
+                                    })
+
+                                    console.log(response)
+                                    .then(data => {
+                                        if (data.success) {
+                                            alert('Visita reagendada com sucesso!');
+                                            // Aqui você pode atualizar a tabela ou tomar qualquer ação após o reagendamento
+                                            
+                                            // Atualiza os dados da linha com as novas informações da API
+                                            const row = document.getElementById(`visit-${codigoVisita}`);
+                                            if (row) {
+                                                // Atualiza a coluna de Data e Hora na linha da tabela
+                                                row.querySelector('td:nth-child(2)').textContent = data.Novadata;
+                                                row.querySelector('td:nth-child(3)').textContent = data.Novahora;
+
+                                                console.log(`Linha da visita ${codigoVisita} atualizada.`);
+                                            } else {
+                                                console.error(`Linha da visita ${codigoVisita} não encontrada.`);
+                                            }
+
+
+                                            // Enviar o e-mail de confirmação do reagendamento
+
+                                            // Exibe o ícone de carregamento
+                                            document.getElementById('loadingIcon').style.display = 'block';
+
+                                            fetch('/enviar-email-reagendamento', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({
+                                                    codigo: data.Codigo,
+                                                    novaData: data.Novadata,
+                                                    novaHora: data.Novahora,
+                                                    empresa: data.Empresa,
+                                                    brinde: data.Brinde,
+                                                    coffeebreak: data.Coffebreak,
+                                                    almoco: data.Almoco,
+                                                    catalogo: data.Catalogo,
+                                                    solicitante: data.Solicitante,
+                                                    motivo: data.Motivorea,
+                                                    email: data.Email,
+                                                    tipoVisita: data.Tipovisita
+                                                })
+                                            })
+                                                .then(emailResponse => {
+                                                    if (!emailResponse.ok) {
+                                                        throw new Error('Erro ao enviar o e-mail de reagendamento.');
+                                                    }
+                                                    return emailResponse.json();
+                                                })
+                                                .then(emailResult => {
+
+                                                    // Ocultar a imagem de carregamento após o sucesso
+                                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                                    if (emailResult.success) {
+
+                                                        // Exibir o modal de sucesso
+                                                        document.getElementById('successModal').style.display = 'flex';
+
+                                                        // Fechar o modal de reagendamento com JavaScript puro
+                                                        var rescheduleModal = document.getElementById('rescheduleVisitModal');
+                                                        var modalBackdrop = document.querySelector('.modal-backdrop');
+
+                                                        if (rescheduleModal) {
+                                                            rescheduleModal.style.display = 'none'; // Esconde o modal
+                                                            rescheduleModal.classList.remove('show'); // Remove a classe 'show' do modal
+                                                        }
+
+                                                        if (modalBackdrop) {
+                                                            modalBackdrop.remove(); // Remove o backdrop do modal
+                                                        }
+
+                                                        document.body.classList.remove('modal-open'); // Remove a classe modal-open do body
+                                                        document.body.style = ''; // Limpa o estilo inline do body
+                                                    } else {
+                                                        alert('Erro ao enviar o e-mail de confirmação de reagendamento.');
+                                                    }
+                                                })
+                                                .catch(error => {
+
+                                                    // Ocultar a imagem de carregamento após o sucesso
+                                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                                    console.error('Erro ao enviar o e-mail:', error);
+                                                    alert('Erro ao enviar o e-mail.');
+                                                });
+
+                                            // Função para fechar o modal de sucesso
+                                            document.getElementById('closeSuccessModal').onclick = function () {
+                                                document.getElementById('successModal').style.display = 'none';
+                                            }
+
+                                        } else {
+                                            alert('Erro ao reagendar a visita: ' + data.message);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Erro ao comunicar com a API:', error);
+                                        alert('Erro ao comunicar com a API.');
+                                    });
+                            }
+
+                        } else {
+                            var row = document.createElement('tr');
+                            var cell = document.createElement('td');
+                            cell.colSpan = 6;
+                            cell.textContent = 'Nenhum agendamento encontrado.';
+                            row.appendChild(cell);
+                            tableBody.appendChild(row);
+                        }
+
+                        // Exibir o modal
+                        myAppointmentsModal.style.display = 'block';
+
+                        document.getElementById('myAppointmentsModal').style.display = 'block';  // Abre o modal
+
+                    })
+                    .catch(error => {
+
+                        showAlert('Você Não possui agendamentos.');
+                    });
+            });
+
+            // Fechar o modal de "Meus Agendamentos"
+            closeMyAppointmentsModal.addEventListener('click', function () {
+                myAppointmentsModal.style.display = 'none';
+            });
+
+
+            // Função para fechar o modal
+            document.querySelector('#myAppointmentsModal .close').addEventListener('click', function () {
+                document.getElementById('myAppointmentsModal').style.display = 'none';
+            });
+
+
+            //###############################################################    
+            //***************************************************************
+            // Função para novo agendamento
+            //###############################################################    
+            //***************************************************************
+
+            // Abre o formulário de agendamento ao clicar em "Novo Agendamento" no menu lateral
+            var openFormButton = document.getElementById("openForm");
+            openFormButton.addEventListener("click", function () {
+                var modal = document.getElementById("visitModal");
+
+                // Limpa todos os campos do formulário de novo agendamento
+                document.getElementById('visitDate').value = '';
+                document.getElementById('visitTime').value = '';
+                document.getElementById('visitType').value = '';
+                document.getElementById('companyName').value = '';
+                document.getElementById('visitorName').value = '';
+                document.getElementById('visitorCPF').value = '';
+                document.getElementById('responsibleMVK').value = '';
+                document.getElementById('visitReason').value = '';
+                document.getElementById('otherVisitors').value = '';
+                document.getElementById('numPessoas').value = '';
+                document.getElementById('brindes').checked = false;
+                document.getElementById('coffeeBreak').checked = false;
+                document.getElementById('almoco').checked = false;
+                document.getElementById('catalogo').checked = false;
+
+                modal.style.display = "block";
+            });
+
+            // Código para fechar o modal
+            var modal = document.getElementById("visitModal");
+            var detailModal = document.getElementById("visitDetailModal");
+            var span = document.getElementsByClassName("close");
+
+            Array.from(span).forEach(function (element) {
+                element.onclick = function () {
+                    modal.style.display = "none";
+                    detailModal.style.display = "none";
+                };
+            });
+
+            // Captura o botão "Salvar Agendamento"
+            var submitButton = document.getElementById('submitForm');
+            if (submitButton) {
+                submitButton.addEventListener('click', function () {
+                    console.log('Botão de salvar agendamento clicado.'); // Log de depuração
+
+                    const flatpickrInstance = document.getElementById('visitDate')._flatpickr;
+                    const visitDate = flatpickrInstance ? flatpickrInstance.input : document.getElementById('visitDate');
+                    const visitTime = document.getElementById('visitTime');
+                    const visitType = document.getElementById('visitType');
+                    const companyName = document.getElementById('companyName');
+                    const visitorName = document.getElementById('visitorName');
+                    const visitorCPF = document.getElementById('visitorCPF');
+                    const responsibleMVK = document.getElementById('responsibleMVK');
+                    const visitReason = document.getElementById('visitReason');
+
+
+                    // Campos que serão validados
+                    const requiredFields = [visitDate, visitTime, visitType, companyName, visitorName, visitorCPF, responsibleMVK, visitReason];
+
+                    let allValid = true;
+
+                    // Limpar os destaques anteriores
+                    requiredFields.forEach(field => {
+                        field.classList.remove('error');
+                    });
+
+                    // Verificar cada campo
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('error'); // Adiciona a classe 'error' se o campo estiver vazio
+                            if (allValid) {
+                                field.focus(); // Focar no primeiro campo inválido
+                            }
+                            allValid = false;
+                        }
+                    });
+
+                    if (!allValid) {
+                        alert('Por favor, preencha todos os campos obrigatórios.');
+                        return; // Para a execução do código se algum campo estiver vazio
+                    }
+
+                    // Collect data from the form
+                    const data = {
+                        visitDate: document.getElementById('visitDate').value,
+                        visitTime: document.getElementById('visitTime').value,
+                        visitType: document.getElementById('visitType').value,
+                        companyName: document.getElementById('companyName').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ç/g, 'c').replace(/Ç/g, 'C'),
+                        visitorName: document.getElementById('visitorName').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ç/g, 'c').replace(/Ç/g, 'C'),
+                        visitorCPF: document.getElementById('visitorCPF').value,
+                        responsibleMVK: document.getElementById('responsibleMVK').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ç/g, 'c').replace(/Ç/g, 'C'),
+                        visitReason: document.getElementById('visitReason').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ç/g, 'c').replace(/Ç/g, 'C'),
+                        otherVisitors: document.getElementById('otherVisitors').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ç/g, 'c').replace(/Ç/g, 'C'),
+                        numPessoas: document.getElementById('numPessoas').value,
+                        brindes: document.getElementById('brindes').checked,
+                        coffeeBreak: document.getElementById('coffeeBreak').checked,
+                        almoco: document.getElementById('almoco').checked,
+                        catalogo: document.getElementById('catalogo').checked,
+                        userLogin: USERLOGIN,
+                        userName: USERNAME
+                    };
+
+                    console.log('Dados a serem enviados:', data); // Debugging Log
+
+                    const apiUrl = 'http://192.168.0.251:8401/rest/VKAGEVIS';
+                    const username = 'admin';
+                    const password = 'msmvk';
+                    const credentials = btoa(`${username}:${password}`);
+
+                    fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${credentials}`
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(result => {
+
+
+                            if (result.success) {
+                                alert('Agendamento salvo com sucesso!');
+                                document.getElementById('visitModal').style.display = 'none';
+
+                                if (typeof calendar.refetchEvents === 'function') {
+                                    calendar.refetchEvents(); // Tenta recarregar os eventos do calendário
+                                } else {
+                                    calendar.destroy(); // Destrói a instância atual do calendário
+                                    calendar.render();  // Renderiza novamente o calendário
+                                }
+
+
+                                document.getElementById('loadingIcon').style.display = 'block';
+
+                                // Chamada do envio de email do agendamento após salvar
+
+                                // Exibe o ícone de carregamento
+                                fetch('/enviar-email', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+
+                                    body: JSON.stringify({
+                                        destinatario: USERLOGIN,
+                                        data: formatDate(data.visitDate),
+                                        visitTime: data.visitTime,
+                                        companyName: data.companyName,
+                                        visitorName: data.visitorName,
+                                        responsibleMVK: data.responsibleMVK,
+                                        otherVisitors: data.otherVisitors,
+                                        numPessoas: data.numPessoas,
+                                        visitType: data.visitType,
+                                        visitReason: data.visitReason,
+                                        userName: USERNAME
+                                    })
+                                })
+                                    .then(emailResponse => {
+                                        if (!emailResponse.ok) {
+                                            throw new Error('Falha ao tentar enviar o e-mail.');
+                                        }
+                                        return emailResponse.json();
+                                    })
+                                    .then(emailResult => {
+
+                                        // Ocultar a imagem de carregamento após o sucesso
+                                        document.getElementById('loadingIcon').style.display = 'none';
+
+
+                                        if (emailResult.success) {
+
+                                            // Exibir o modal de sucesso
+                                            document.getElementById('successModal').style.display = 'flex';
+
+                                        } else {
+                                            alert('Erro ao enviar o e-mail de confirmação.');
+                                        }
+
+
+                                    })
+                                    .catch(error => {
+
+                                        // Ocultar a imagem de carregamento após o sucesso
+                                        document.getElementById('loadingIcon').style.display = 'none';
+
+                                        console.error('Erro ao enviar o e-mail:', error);
+                                        alert('Erro ao enviar o e-mail.');
+
+                                        // Esconde a mensagem de espera
+                                        document.getElementById('loadingMessage').style.display = 'none';
+
+
+
+                                    });
+
+                                // Função para fechar o modal de sucesso
+                                document.getElementById('closeSuccessModal').onclick = function () {
+                                    document.getElementById('successModal').style.display = 'none';
+                                }
+
+
+
+                            } else {
+                                alert('Erro ao salvar agendamento: ' + result.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao comunicar com a API:', error);
+                            alert('Erro ao comunicar com a API.');
+                        });
+
+                });
+            };
+
+
+            // ##################################################
+            //***************************************************
+            // -----------Função Cliente Retira -----------------
+            //***************************************************
+            // ##################################################
+
+            const clienteRetiraButton = document.getElementById('clienteRetiraButton');
+            if (clienteRetiraButton) {
+                clienteRetiraButton.addEventListener('click', () => {
+                    // Limpa os campos do formulário antes de abrir o modal
+                    document.getElementById('retiradaDate').value = '';
+                    document.getElementById('pedidoVenda').value = '';
+                    document.getElementById('cliente').value = '';
+                    document.getElementById('nomeCliente').value = '';
+                    document.getElementById('cnpj').value = '';
+                    document.getElementById('transportadora').value = '';
+                    document.getElementById('pedido').value = '';
+                    document.getElementById('qtdVolumes').value = '';
+                    document.getElementById('cubagem').value = '';
+
+                    const clienteRetiraModal = document.getElementById('clienteRetiraModal');
+                    const clienteRetiraModalInstance = new bootstrap.Modal(clienteRetiraModal);
+
+                    clienteRetiraModalInstance.show();
+                });
+            }
+
+            const clientRetiraModal = document.getElementById("clienteRetiraModal");
+            const closeClienteButton = document.querySelector('.close-clienteRetiraModal');
+
+            // Função para fechar o modal
+            function closeclienteRetiraModal() {
+                clientRetiraModal.style.display = 'none';
+            }
+
+            // Adiciona o evento de clique ao botão de fechar
+            closeClienteButton.addEventListener('click', closeclienteRetiraModal);
+            // Fecha o modal ao clicar fora dele
+            window.onclick = function (event) {
+                if (event.target === clientRetiraModal) {
+                    fecharModal();
+                }
+            };
+
+            const buscarClienteButton = document.getElementById('buscarClienteButton');
+            if (buscarClienteButton) {
+                buscarClienteButton.addEventListener('click', async () => {
+                    const pedidoVenda = document.getElementById('pedidoVenda').value;
+
+                    if (pedidoVenda.trim() === '') {
+                        alert('Por favor, informe o número do pedido/nota fiscal.');
+                        return;
+                    }
+
+                    // Faz a requisição para a API de buscar o cliente
+                    const apiUrl = 'http://192.168.0.251:8401/rest/VKDADPED';
+                    const username = 'admin';
+                    const password = 'msmvk';
+                    const credentials = btoa(`${username}:${password}`);
+
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Basic ${credentials}`
+                            },
+                            body: JSON.stringify({ pedidoVenda: pedidoVenda })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Erro ao buscar cliente: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.sucess) {
+                            // Preenche os campos no modal
+                            document.getElementById('cliente').value = data.Cliente;
+                            document.getElementById('nomeCliente').value = data.NomeCliente;
+                            document.getElementById('cnpj').value = data.CNPJ;
+                            document.getElementById('transportadora').value = data.Tranportadora;
+                            document.getElementById('pedido').value = data.Pedido;
+                            document.getElementById('qtdVolumes').value = data.QtdVolumes;
+                            document.getElementById('cubagem').value = data.Cubagem;
+
+                        } else {
+                            alert('Cliente não encontrado. Verifique o número do pedido/nota fiscal.');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao buscar cliente:', error);
+                        alert('Erro ao buscar cliente. Tente novamente mais tarde.');
+                    }
+                });
+            }
+
+
+
+            // Evento de clique no botão "Salvar Agendamento"
+            const salvarRetiradaButton = document.getElementById('salvarRetirada');
+            if (salvarRetiradaButton) {
+                salvarRetiradaButton.addEventListener('click', async () => {
+                    const retiradaDate = document.getElementById('retiradaDate').value;
+                    const retiradaHora = document.getElementById('retiradaHora').value;
+                    const pedidoVenda = document.getElementById('pedidoVenda').value;
+                    const cliente = document.getElementById('cliente').value;
+                    const nomeCliente = document.getElementById('nomeCliente').value;
+                    const cnpj = document.getElementById('cnpj').value;
+                    const transportadora = document.getElementById('transportadora').value;
+                    const pedido = document.getElementById('pedido').value;
+                    const qtdVolumes = document.getElementById('qtdVolumes').value;
+                    const cubagem = document.getElementById('cubagem').value;
+                    const motorista = document.getElementById('motorista').value;
+                    const cpf = document.getElementById('cpf').value;
+                    const rg = document.getElementById('rg').value;
+                    const placa = document.getElementById('placa').value;
+
+
+                    // Valide os dados antes de enviar para a API (opcional)
+                    if (retiradaDate.trim() === '' || pedidoVenda.trim() === '' || transportadora.trim() === '' || pedido.trim() === '' || qtdVolumes.trim() === '' || cubagem.trim() === '' || motorista.trim() === '' || cpf.trim() === '' || rg.trim() === '' || placa.trim() === '') {
+                        alert('Por favor, preencha todos os campos obrigatórios.');
+                        return;
+                    }
+
+                    const apiUrl = 'http://192.168.0.251:8401/rest/VKAGEVIS';
+                    const username = 'admin';
+                    const password = 'msmvk';
+                    const credentials = btoa(`${username}:${password}`);
+
+                    //Concatena para criar o motivo
+                    const dadosAgendamento = 'Pedido: ' + pedido + ' | Trasnportadora: ' + transportadora + ' | Caminhao Placa: ' + placa + ' | Volumes/Peso/Cubagem estimado: ' + qtdVolumes + '/' + cubagem + ' | Transportadora: ' + transportadora
+
+                    //Retomar daqui preenchendo os dados do Json
+                    // Collect data from the form
+                    const data = {
+                        visitDate: retiradaDate,
+                        visitTime: retiradaHora,
+                        visitType: '5',
+                        companyName: nomeCliente,
+                        visitorName: motorista,
+                        visitorCPF: cpf,
+                        responsibleMVK: 'Logistica',
+                        visitReason: dadosAgendamento,
+                        otherVisitors: '',
+                        brindes: false,
+                        coffeeBreak: false,
+                        almoco: false,
+                        catalogo: false,
+                        userLogin: USERLOGIN,
+                        userName: USERNAME
+                    };
+
+                    // 1. Faz a requisição para salvar o agendamento na API
+                    fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${credentials}`
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Erro ao salvar agendamento: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(result => {
+
+                            alert('Agendamento de Retirada salvo com sucesso! Agora o sistema enviará um e-mail aos interessados');
+
+
+                            // Exibe o ícone de carregamento
+                            document.getElementById('loadingIcon').style.display = 'block';
+
+
+                            // Chamada do envio de email do agendamento após salvar
+                            fetch('/email-cliente-retira', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+
+                                body: JSON.stringify({
+                                    destinatario: USERLOGIN,
+                                    data: data.visitDate,
+                                    visitTime: data.visitTime,
+                                    companyName: data.companyName,
+                                    visitorName: data.visitorName,
+                                    responsibleMVK: data.responsibleMVK,
+                                    otherVisitors: data.otherVisitors,
+                                    visitType: data.visitType,
+                                    visitReason: data.visitReason,
+                                    userName: USERNAME
+                                })
+                            })
+                                .then(emailResponse => {
+                                    if (!emailResponse.ok) {
+                                        throw new Error('Falha ao tentar enviar o e-mail.');
+                                    }
+                                    return emailResponse.json();
+                                })
+                                .then(emailResult => {
+
+                                    // Ocultar a imagem de carregamento após o sucesso
+                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                    if (emailResult.success) {
+
+                                        // Exibir o modal de sucesso
+                                        document.getElementById('successModal').style.display = 'flex';
+                                        ;
+                                    } else {
+                                        alert('Erro ao enviar o e-mail de confirmação.');
+                                    }
+                                    // Esconde a mensagem de espera
+                                    document.getElementById('loadingMessage').style.display = 'none';
+                                })
+                                .catch(error => {
+
+                                    // Ocultar a imagem de carregamento após o sucesso
+                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                    console.error('Erro ao enviar o e-mail:', error);
+                                    alert('Erro ao enviar o e-mail.');
+                                    // Esconde a mensagem de espera
+                                    document.getElementById('loadingMessage').style.display = 'none';
+
+                                });
+
+                            // Função para fechar o modal de sucesso
+                            document.getElementById('closeSuccessModal').onclick = function () {
+                                document.getElementById('successModal').style.display = 'none';
+                            }
+
+                            document.getElementById('clienteRetiraModal').style.display = 'none';
+
+
+                        })
+                        .catch(error => {
+                            console.error('Erro ao salvar agendamento:', error);
+                            alert('Erro ao salvar agendamento. Tente novamente mais tarde.');
+                        });
+                });
+            }
+
+
+
+            // Garanta que cada linha da tabela tenha um ID único baseado no código da visita
+            document.querySelectorAll('#authorizeVisitsTable tbody tr').forEach((row, index) => {
+                const codigoVisita = row.querySelector('.approve-button').dataset.codigo;
+                row.id = `visit-${codigoVisita}`;
+            });
+
+
+
+
+            //*********************************************************
+            //#########################################################
+            // Abre o modal para autorizar visitas
+            //#########################################################
+            //*********************************************************
+
+            var authorizeVisitsButton = document.querySelector('a[href="#authorize-visits"]');
+            var authorizeVisitsModal = document.getElementById('authorizeVisitsModal');
+            var closeModal = authorizeVisitsModal.querySelector('.close');
+
+            authorizeVisitsButton.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                fetch('http://192.168.0.251:8401/rest/VKAPRVIS', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                    },
+                    body: JSON.stringify({})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        var tableBody = document.getElementById('authorizeVisitsTable').querySelector('tbody');
+                        tableBody.innerHTML = '';
+
+                        data.Agendas.forEach(agenda => {
+                            var row = document.createElement('tr');
+                            row.id = `visit-${agenda.Codigo}`;  // Atribui um ID único à linha
+
+                            var codigoCell = document.createElement('td');
+                            codigoCell.textContent = agenda.Codigo;
+                            row.appendChild(codigoCell);
+
+                            var dataCell = document.createElement('td');
+                            dataCell.textContent = agenda.Data;
+                            row.appendChild(dataCell);
+
+                            var horaCell = document.createElement('td');
+                            horaCell.textContent = agenda.Hora;
+                            row.appendChild(horaCell);
+
+                            var solicitanteCell = document.createElement('td');
+                            solicitanteCell.textContent = agenda.Solicitante;
+                            row.appendChild(solicitanteCell);
+
+                            var empresaCell = document.createElement('td'); // Adicionando o campo Empresa
+                            empresaCell.textContent = agenda.Empresa; // Certifique-se que "Empresa" está vindo do JSON da API
+                            row.appendChild(empresaCell);
+
+                            var motivoCell = document.createElement('td');
+                            motivoCell.textContent = agenda.Motivo;
+                            row.appendChild(motivoCell);
+
+                            var LocalCell = document.createElement('td');
+                            // Cria a lista suspensa
+                            var select = document.createElement('select');
+
+                            // Adiciona as opções
+                            var option1 = document.createElement('option');
+                            option1.value = '1';
+                            option1.text = 'Parque Fabril';
+                            select.appendChild(option1);
+
+                            var option2 = document.createElement('option');
+                            option2.value = '2';
+                            option2.text = 'Showroom / Reuniao';
+                            select.appendChild(option2);
+
+                            // Adiciona a lista suspensa à célula
+                            LocalCell.appendChild(select);
+
+                            row.appendChild(LocalCell);
+
+                            var QtdVisCell = document.createElement('td');
+                            QtdVisCell.textContent = agenda.QtdVisit;
+                            row.appendChild(QtdVisCell);
+
+                            var TemBrinde = agenda.Brinde;
+
+                            console.log(TemBrinde)
+
+                            //Brinde
+                            // Cria a célula para os brindes
+                            var brindeCell = document.createElement('td');
+                            //brindeCell.classList.add('brindes-container'); // Adiciona a classe CSS
+
+                            // Cria os inputs e imagens para cada brinde
+                            var brindeOuro = document.createElement('div');
+                            brindeOuro.innerHTML = `
+                                <div class="brinde-item">
+                                    <img src="images/ouro.png" alt="Brinde Ouro" style="width: 20px; ${agenda.Brinde === "Nao" ? 'display:none;' : ''}">
+                                    <input type="number" id="quantidadeOuro-${agenda.Codigo}" name="quantidadeOuro" value="0" style="width: 60px; text-align: center; ${agenda.Brinde === "Nao" ? 'display:none;' : ''}">
+                                </div>
+                            `;
+                            brindeCell.appendChild(brindeOuro);
+
+                            var brindePrata = document.createElement('div');
+                            brindePrata.innerHTML = `
+                                <div class="brinde-item">
+                                    <img src="images/prata.png" alt="Brinde Prata" style="width: 20px; ${agenda.Brinde === "Nao" ? 'display:none;' : ''}">
+                                    <input type="number" id="quantidadePrata-${agenda.Codigo}" name="quantidadePrata" value="0" style="width: 60px; text-align: center; ${agenda.Brinde === "Nao" ? 'display:none;' : ''}">
+                                </div>
+                            `;
+                            brindeCell.appendChild(brindePrata);
+
+                            var brindeBronze = document.createElement('div');
+                            brindeBronze.innerHTML = `
+                                <div class="brinde-item">
+                                    <img src="images/bronze.png" alt="Brinde Bronze" style="width: 20px; ${agenda.Brinde === "Nao" ? 'display:none;' : ''}">
+                                    <input type="number" id="quantidadeBronze-${agenda.Codigo}" name="quantidadeBronze" value="0" style="width: 60px; text-align: center; ${agenda.Brinde === "Nao" ? 'display:none;' : ''}">
+                                </div>
+                            `;
+                            brindeCell.appendChild(brindeBronze);
+
+
+                            row.appendChild(brindeCell);
+
+                            var actionCell = document.createElement('td');
+
+                            // Adiciona os eventos de clique para os botões "Aprovar" e "Rejeitar"
+                            var approveButton = document.createElement('button');
+                            approveButton.classList.add('approve-button');
+                            approveButton.dataset.codigo = agenda.Codigo;
+                            approveButton.textContent = 'Aprovar';
+
+                            // Adiciona o event listener ao botão "Aprovar" individualmente
+                            approveButton.addEventListener('click', function () {
+                                const codigoVisita = this.dataset.codigo;
+                                const select = this.closest('tr').querySelector('select');
+                                const selectedOption = select.value;
+                                // Obter as quantidades dos brindes
+                                const quantidadeOuro = parseInt(document.getElementById(`quantidadeOuro-${codigoVisita}`).value) || 0;
+                                const quantidadePrata = parseInt(document.getElementById(`quantidadePrata-${codigoVisita}`).value) || 0;
+                                const quantidadeBronze = parseInt(document.getElementById(`quantidadeBronze-${codigoVisita}`).value) || 0;
+
+                                if (TemBrinde === 'Sim') {
+                                    if (quantidadeOuro !== 0 || quantidadePrata !== 0 || quantidadeBronze !== 0) {
+                                        aprovarVisita(codigoVisita, selectedOption, quantidadeOuro, quantidadePrata, quantidadeBronze);
+                                    } else {
+                                        alert("É necessário informar a quantidade de pelo menos um brinde.");
+                                        return;
+                                    }
+                                } else {   
+                                    aprovarVisita(codigoVisita, selectedOption, quantidadeOuro, quantidadePrata, quantidadeBronze);
+                                }
+
+                            });
+
+                            actionCell.appendChild(approveButton);
+
+                            var rejectButton = document.createElement('button');
+                            rejectButton.classList.add('reject-button');
+                            rejectButton.dataset.codigo = agenda.Codigo;
+                            rejectButton.textContent = 'Rejeitar';
+
+                            rejectButton.addEventListener('click', function () {
+                                const codigoVisita = this.dataset.codigo;
+                                const motivo = prompt('Informe o motivo da rejeição:');
+                                if (motivo) {
+                                    rejeitarVisita(codigoVisita, motivo);
+                                }
+                            });
+
+                            actionCell.appendChild(rejectButton);
+
+                            row.appendChild(actionCell);
+                            tableBody.appendChild(row);
+                        });
+
+                        authorizeVisitsModal.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar as visitas:', error);
+
+                        // Mostra o alerta moderno em vez de alert()
+                        showAlert('Não existem visitas para aprovação');
+                    });
+            });
+
+            closeModal.addEventListener('click', function () {
+                authorizeVisitsModal.style.display = 'none';
+            });
+
+
+            //###############################################################
+            //###############################################################    
+            //***************************************************************
+            // Funções para Aprovar e Rejeitar Visitas
+            //***************************************************************
+            //###############################################################
+            //###############################################################
+
+            function aprovarVisita(codigoVisita, selectedOption, quantidadeOuro, quantidadePrata, quantidadeBronze) {
+                fetch('http://192.168.0.251:8401/rest/VKOKVIS', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                    },
+
+                    body: JSON.stringify({ codigoVisita: codigoVisita, tipoAcao: 'Aprovacao', tipoLocal: selectedOption, qtdouro: quantidadeOuro, qtdprata: quantidadePrata, qtdbronze: quantidadeBronze, motivo: '' })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Visita aprovada com sucesso!');
+
+                            // Remover a linha da tabela após a aprovação
+                            const row = document.getElementById(`visit-${codigoVisita}`);
+                            if (row) {
+                                row.remove(); // Remove a linha do DOM
+                                console.log(`Linha da visita ${codigoVisita} removida.`);
+                            } else {
+                                console.error(`Linha da visita ${codigoVisita} não encontrada.`);
+                            }
+
+                            // Captura os dados retornados da API
+                            const codigo = data.Codigo;
+                            const visitDate = data.Data;
+                            const visitTime = data.Hora;
+                            const companyName = data.Empresa;
+                            const destinatario = data.Email;
+                            const brinde = data.Brinde;
+                            const coffeeBreak = data.Coffebreak;
+                            const almoco = data.Almoco;
+                            const catalogo = data.Catalogo;
+                            const local = data.Local;
+                            const QtdVisita = data.QtdVisita
+                            const brindeouro = data.BrindeOuro
+                            const brindeprata = data.BrindePrata
+                            const brindebronze = data.BindeBronze
+
+                            // Exibe o ícone de carregamento
+                            document.getElementById('loadingIcon').style.display = 'block';
+
+                            // Chamada do envio de e-mail após rejeitar a visita
+                            fetch('/enviar-email-aprovado', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    codigo: codigo,
+                                    visitDate: visitDate,
+                                    visitTime: visitTime,
+                                    companyName: companyName,
+                                    destinatarios: destinatario,
+                                    brinde: brinde,
+                                    coffebreak: coffeeBreak,
+                                    almoco: almoco,
+                                    catalogo: catalogo,
+                                    local: local,
+                                    QtdVisita: QtdVisita,
+                                    brindeouro: brindeouro,
+                                    brindeprata: brindeprata,
+                                    brindebronze: brindebronze,
+                                })
+                            })
+                                .then(emailResponse => {
+                                    if (!emailResponse.ok) {
+                                        throw new Error('Erro ao enviar o e-mail de rejeição.');
+                                    }
+                                    return emailResponse.json();
+                                })
+                                .then(emailResult => {
+
+                                    // Ocultar a imagem de carregamento após o sucesso
+                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                    if (emailResult.success) {
+
+                                        // Exibir o modal de sucesso
+                                        document.getElementById('successModal').style.display = 'flex';
+
+                                    } else {
+                                        alert('Erro ao enviar o e-mail de rejeição.');
+                                    }
+                                })
+                                .catch(error => {
+
+                                    // Ocultar a imagem de carregamento após o sucesso
+                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                    console.error('Erro ao enviar o e-mail:', error);
+                                    alert('Erro ao enviar o e-mail.');
+                                });
+
+                            // Função para fechar o modal de sucesso
+                            document.getElementById('closeSuccessModal').onclick = function () {
+                                document.getElementById('successModal').style.display = 'none';
+                            }
+
+
+                        } else {
+                            alert('Erro ao aprovar a visita: ' + data.Retorno);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao comunicar com a API:', error);
+                        alert('Erro ao comunicar com a API.');
+                    });
+            }
+
+
+
+            function rejeitarVisita(codigoVisita, motivo) {
+
+                // Verifica se a linha correspondente ao código da visita existe na tabela
+                const row = document.getElementById(`visit-${codigoVisita}`);
+                if (!row) {
+                    console.error(`Linha da visita ${codigoVisita} não encontrada.`);
+                    return;
+                }
+
+                // Faz a requisição à API de rejeição de visita
+                fetch('http://192.168.0.251:8401/rest/VKOKVIS', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('admin:msmvk')
+                    },
+                    body: JSON.stringify({ codigoVisita: codigoVisita, tipoAcao: 'Rejeicao', motivo: motivo })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+
+                            alert('Visita rejeitada com sucesso!');
+
+
+
+                            // Remove a linha da tabela após a rejeição
+                            const rowToRemove = document.getElementById(`visit-${codigoVisita}`);
+                            if (rowToRemove) {
+                                rowToRemove.remove(); // Remove a linha do DOM
+                                console.log(`Linha da visita ${codigoVisita} removida.`);
+                            } else {
+                                console.error(`Linha da visita ${codigoVisita} não encontrada.`);
+                            }
+
+                            // Captura os dados retornados da API
+                            const codigo = data.Codigo;
+                            const visitDate = data.Data;
+                            const visitTime = data.Hora;
+                            const companyName = data.Empresa;
+                            const motivoRejeicao = data.Motivo;
+                            const destinatario = data.Email;
+
+                            // Exibe o ícone de carregamento
+                            document.getElementById('loadingIcon').style.display = 'block';
+
+                            // Chamada do envio de e-mail após rejeitar a visita
+                            fetch('/enviar-email-rejeicao', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    codigo: codigo,
+                                    visitDate: visitDate,
+                                    visitTime: visitTime,
+                                    companyName: companyName,
+                                    motivoRejeicao: motivoRejeicao,
+                                    destinatario: destinatario
+                                })
+                            })
+                                .then(emailResponse => {
+                                    if (!emailResponse.ok) {
+                                        throw new Error('Erro ao enviar o e-mail de rejeição.');
+                                    }
+                                    return emailResponse.json();
+                                })
+                                .then(emailResult => {
+
+                                    // Ocultar a imagem de carregamento após o sucesso
+                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                    if (emailResult.success) {
+
+                                        // Exibir o modal de sucesso
+                                        document.getElementById('successModal').style.display = 'flex';
+
+                                    } else {
+                                        alert('Erro ao enviar o e-mail de rejeição.');
+                                    }
+                                })
+                                .catch(error => {
+
+                                    // Ocultar a imagem de carregamento após o sucesso
+                                    document.getElementById('loadingIcon').style.display = 'none';
+
+                                    console.error('Erro ao enviar o e-mail:', error);
+                                    alert('Erro ao enviar o e-mail.');
+                                });
+
+                            // Função para fechar o modal de sucesso
+                            document.getElementById('closeSuccessModal').onclick = function () {
+                                document.getElementById('successModal').style.display = 'none';
+                            }
+
+                        } else {
+                            alert('Erro ao rejeitar a visita: ' + data.Retorno);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao comunicar com a API:', error);
+                        alert('Erro ao comunicar com a API.');
+                    });
+
+            }
+
+        });
+
+
+        // ##################################################
+        //***************************************************
+        // -----------Função Abertura dos portões------------
+        //***************************************************
+        // ##################################################
+
+
+        // Eventos para os botões
+        document.getElementById('openGateSocial').addEventListener('click', function () {
+            abrirPortao('social'); // Chama a função com o tipo de portão "social"
+        });
+
+        document.getElementById('openTurnstile').addEventListener('click', function () {
+            abrirPortao('torniquete'); // Chama a função com o tipo de portão "torniquete"
+        });
+
+        document.getElementById('openGateVehicle').addEventListener('click', function () {
+            abrirPortao('veiculos'); // Chama a função com o tipo de portão "veiculos/USERLOGIN
+        });
+
+        // Função para fazer a requisição com o tipo de portão
+        function abrirPortao(gateType) {
+            fetch('/abrir-portao-social', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ gateType: gateType }) // Envia o tipo de portão
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                    } else {
+                        alert('Erro ao abrir o portão');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao abrir o portão');
+                });
+        }
+
+
+        // ##################################################
+        //***************************************************
+        // -----------Função Abertura dos portões------------
+        //***************************************************
+        // ##################################################
+
+
+        // Eventos para os botões
+        document.getElementById('openGateSoc').addEventListener('click', function () {
+            abrirPort('social'); // Chama a função com o tipo de portão "social"
+        });
+
+        document.getElementById('openTurnsti').addEventListener('click', function () {
+            abrirPort('torniquete'); // Chama a função com o tipo de portão "torniquete"
+        });
+
+        document.getElementById('openGateVehic').addEventListener('click', function () {
+            abrirPort('veiculos'); // Chama a função com o tipo de portão "veiculos"USERLOGIN
+        });
+
+        // Função para fazer a requisição com o tipo de portão
+        function abrirPort(gateType) {
+            fetch('/abrir-portao-social', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ gateType: gateType }) // Envia o tipo de portão
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                    } else {
+                        alert('Erro ao abrir o portão');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao abrir o portão');
+                });
+        }
+
+    </script>
+
+</body>
+
+</html>
